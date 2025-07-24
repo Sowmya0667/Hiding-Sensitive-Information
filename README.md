@@ -104,6 +104,7 @@ Hiding-Sensitive-Information/
 - A compatible environment for GPU acceleration (optional, for YOLOv8 training and inference)
 - API access for Gemini 1.5 Flash (requires configuration)
 - PaddleOCR and Aspose OCR dependencies (see requirements.txt)
+- Additional dependencies for evaluation: fuzzywuzzy, numpy, python-Levenshtein (optional, for faster fuzzy matching)
 ---
 
 ## 🛠️ Setup Instructions
@@ -111,8 +112,8 @@ Hiding-Sensitive-Information/
 ### 🔄 Clone the Repository:
 
 ```bash
-git clone https://github.com/your-username/sensitive-info-hiding.git
-cd sensitive-info-hiding
+git clone https://github.com/Sowmya0667/Hiding-Sensitive-Information.git
+cd Hiding-Sensitive-Information
 ```
 
 ### 📦 Install Dependencies
