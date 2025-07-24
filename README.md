@@ -69,6 +69,7 @@ This project implements a six-stage pipeline to detect and hide personally ident
 ```markdown
 Hiding-Sensitive-Information/
 ├── data/                  # Data configuration and annotations (no images included)
+|   ├── raw/               # Some raw images
 │   ├── annotations/       # LabelStudio annotations for training
 │   ├── data.yaml          # YOLOv8 data configuration file
 │   └── processed/         # Temporary pipeline outputs (excluded via .gitignore)
