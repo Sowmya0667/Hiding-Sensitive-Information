@@ -1,0 +1,7 @@
+train: /path/to/your/secure_data/train/images
+val: /path/to/your/secure_data/val/images
+test: /path/to/your/secure_data/test
+nc: 1
+names: [
+  "id_card",
+]
