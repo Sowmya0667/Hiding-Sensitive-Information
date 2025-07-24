@@ -64,30 +64,7 @@ Manually corrected PII labels on a test set for validation.
 
 ## 📁 Folder Structure
 
-Hiding-Sensitive-Information/
-├── data/                  # Data files (not uploaded due to sensitivity)
-│   ├── raw/               # Raw images
-│   ├── annotations/       # LabelStudio annotations
-│   └── processed/         # Cropped and deskewed images
-├── models/                # Trained models
-│   └── yolov8_id_card.pt  # YOLOv8 model weights
-├── scripts/               # Core pipeline scripts
-│   ├── detect_id_card.py  # YOLOv8 inference
-│   ├── crop_images.py     # Crop ID cards
-│   ├── deskew_images.py   # Deskew images
-│   ├── extract_text.py    # PaddleOCR text extraction
-│   ├── detect_pii.py      # PII detection with Gemini LLM
-│   └── mask_pii.py        # Mask PII with OpenCV
-├── app/                   # Streamlit app
-│   ├── app.py             # Streamlit app code
-├── notebooks/             # Analysis notebooks
-│   └── evaluation.ipynb   # Accuracy, precision, recall evaluation
-├── presentation/          # Project presentation file
-│   └── hiding_sensitive_information_presentation.pdf   
-├── requirements.txt       # Python dependencies
-├── README.md              # Project overview and instructions
-├── LICENSE                # Project license
-└── .gitignore             # Git ignore rules
+<pre> ```text Hiding-Sensitive-Information/ ├── data/ # Data files (not uploaded due to sensitivity) │ ├── raw/ # Raw images │ ├── annotations/ # LabelStudio annotations │ └── processed/ # Cropped and deskewed images ├── models/ # Trained models │ └── yolov8_id_card.pt # YOLOv8 model weights ├── scripts/ # Core pipeline scripts │ ├── detect_id_card.py # YOLOv8 inference │ ├── crop_images.py # Crop ID cards │ ├── deskew_images.py # Deskew images │ ├── extract_text.py # PaddleOCR text extraction │ ├── detect_pii.py # PII detection with Gemini LLM │ └── mask_pii.py # Mask PII with OpenCV ├── app/ # Streamlit app │ ├── app.py # Streamlit app code ├── notebooks/ # Analysis notebooks │ └── evaluation.ipynb # Accuracy, precision, recall evaluation ├── presentation/ # Project presentation file │ └── hiding_sensitive_information_presentation.pdf ├── requirements.txt # Python dependencies ├── README.md # Project overview and instructions ├── LICENSE # Project license └── .gitignore # Git ignore rules ``` </pre>
 
 ## 📋 Prerequisites
 
