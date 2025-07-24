@@ -42,12 +42,13 @@ This project implements a six-stage pipeline to detect and hide personally ident
 
 ## 📊 Evaluation
 
-Manually corrected PII labels on a test set for validation.
+- Evaluated on a test set with manually corrected PII labels (ground truth created by human annotators).
+- **Accuracy**: 91%  
+- **Precision**: 95%  
+- **Recall**: 95%  
+- Metrics reflect the performance of the entire pipeline, from ID card detection to PII masking.
 
-
-- **✅ Accuracy**: 91%  
-- **🎯 Precision**: 95%  
-- **🔁 Recall**: 95%
+---
 
 
 ## 💻 Tools Used
@@ -56,33 +57,37 @@ Manually corrected PII labels on a test set for validation.
 - 🖊️ **LabelStudio** – Manual annotation of bounding boxes  
 - 🧾 **Aspose OCR + OpenCV** – Image alignment and deskewing  
 - 🔍 **PaddleOCR** – Text extraction and layout analysis  
-- 🧠 **Gemini 1.5 Flash** – PII detection  
+- 🧠 **Gemini 1.5 Flash** – PII detection
+- 📓 **Pillow**: PII masking 
 - 📱 **Streamlit** – User interface for the pipeline  
 - 🐍 **Python** – Core implementation  
-- 📓 **Jupyter Notebooks** – Prototyping and evaluation
+
 
 
 ## 📁 Folder Structure
 
 ```markdown
 Hiding-Sensitive-Information/
-├── data/                  # Data files (not uploaded due to sensitivity)
-│   ├── raw/               # Raw images
-│   ├── annotations/       # LabelStudio annotations
-│   └── processed/         # Cropped and deskewed images
+├── data/                  # Data configuration and annotations (no images included)
+│   ├── annotations/       # LabelStudio annotations for training
+│   ├── data.yaml          # YOLOv8 data configuration file
+│   └── processed/         # Temporary pipeline outputs (excluded via .gitignore)
+│       ├── cropped/       # Cropped ID card images
+│       ├── aligned/       # Deskewed images
+│       └── masked/        # Masked images
 ├── models/                # Trained models
-│   └── yolov8_id_card.pt  # YOLOv8 model weights
+│   └── README.md          # YOLOv8 model weights
 ├── scripts/               # Core pipeline scripts
-│   ├── detect_id_card.py  # YOLOv8 inference
+│   ├── train_yolov8.py    # Train YOLOv8 model
+│   ├── predict_yolov8.py  # Predict ID card bounding boxes
 │   ├── crop_images.py     # Crop ID cards
 │   ├── deskew_images.py   # Deskew images
 │   ├── extract_text.py    # PaddleOCR text extraction
 │   ├── detect_pii.py      # PII detection with Gemini LLM
-│   └── mask_pii.py        # Mask PII with OpenCV
+│   ├── mask_pii.py        # Mask PII with Pillow
+│   └── evaluate.py        # Evaluate accuracy, precision, recall
 ├── app/                   # Streamlit app
 │   ├── app.py             # Streamlit app code
-├── notebooks/             # Analysis notebooks
-│   └── evaluation.ipynb   # Accuracy, precision, recall evaluation
 ├── presentation/          # Project presentation file
 │   └── hiding_sensitive_information_presentation.pdf   
 ├── requirements.txt       # Python dependencies
@@ -91,12 +96,15 @@ Hiding-Sensitive-Information/
 └── .gitignore             # Git ignore rules
 ```
 
-
+---
 ## 📋 Prerequisites
 
 - Python 3.8+
 - Git
-- A compatible environment for GPU acceleration (optional, for YOLOv8 inference)
+- A compatible environment for GPU acceleration (optional, for YOLOv8 training and inference)
+- API access for Gemini 1.5 Flash (requires configuration)
+- PaddleOCR and Aspose OCR dependencies (see requirements.txt)
+---
 
 ## 🛠️ Setup Instructions
 
@@ -119,11 +127,12 @@ pip install -r requirements.txt
 - Note: Due to file size, the model is not included in the repository. Contact the repository owner or train your own model using the provided scripts.
 
 
-Prepare Data:
+## Prepare Data
 
-- Place raw images in data/raw/.
-- Annotations (if available) should be in data/annotations/ in LabelStudio format.
-- ⚠️ Note: Sensitive data is not included in this repository. Users must provide their own dataset.
+- Place raw images in data/raw/ or test images in data/test/.
+- Place the YOLOv8 data configuration file (data.yaml) in data/.
+- Annotations should be in data/annotations/ in LabelStudio format.
+- ⚠️ **Warning**: Sensitive data is not included in this repository. Users must provide their own dataset. Ensure sensitive files are excluded from version control using .gitignore.
 
 ## 🧪 Usage
 
@@ -131,16 +140,17 @@ Prepare Data:
 Execute the pipeline scripts in sequence:
 
 ```bash
-python scripts/detect_id_card.py
-python scripts/crop_images.py
-python scripts/deskew_images.py
-python scripts/extract_text.py
-python scripts/detect_pii.py
-python scripts/mask_pii.py
+python scripts/train_yolov8.py --data_path data/data.yaml
+python scripts/predict_yolov8.py --model_path models/yolov8_id_card.pt --source data/test --output_dir data/predictions
+python scripts/crop_images.py --image_folder data/test --label_folder data/predictions/predict_train/labels --crop_folder data/processed/cropped
+python scripts/deskew_images.py --input_folder data/processed/cropped --output_folder data/processed/aligned
+python scripts/extract_text.py --input_folder data/processed/aligned --output_image_folder data/processed/paddle_result/images --output_json_folder data/processed/paddle_result/annotations
+python scripts/detect_pii.py --json_folder data/processed/paddle_result/annotations --image_folder data/processed/aligned --output_folder data/processed/pii
+python scripts/mask_pii.py --json_folder data/processed/pii --image_folder data/processed/aligned --output_folder data/processed/masked
 ```
 
 ## Running the Streamlit App
-- Launch the Streamlit app to interact with the pipeline:
+- Launch the Streamlit app to upload images, process them through the pipeline, and view masked outputs:
 ```bash
 streamlit run app/app.py
 ```
@@ -151,7 +161,7 @@ The app provides a user-friendly interface to upload images, process them throug
 ## 📝 Notes
 
 **Data Privacy**: Do not upload sensitive images or data to GitHub. The data/ directory is a placeholder; users must source their own datasets.
-**Model Training**: To train your own YOLOv8 model, use the annotations in data/annotations/ and follow the instructions in scripts/detect_id_card.py.
+**Model Training**: Ensure data.yaml points to your dataset in data/annotations/ and data/raw/. Follow instructions in scripts/train_yolov8.py.
 **Docker Deployment**: The Docker setup is in progress and will be added in a future update.
 
 ## 🤝 Contributing
