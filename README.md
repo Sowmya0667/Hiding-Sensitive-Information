@@ -161,17 +161,17 @@ The app provides a user-friendly interface to upload images, process them throug
 
 ## 📝 Notes
 
-**Data Privacy**: Do not upload sensitive images or data to GitHub. The data/ directory is a placeholder; users must source their own datasets.
-**Model Training**: Ensure data.yaml points to your dataset in data/annotations/ and data/raw/. Follow instructions in scripts/train_yolov8.py.
-**Docker Deployment**: The Docker setup is in progress and will be added in a future update.
+- **Data Privacy**: Do not upload sensitive images or data to GitHub. The data/ directory is a placeholder; users must source their own datasets.
+- **Model Training**: Ensure data.yaml points to your dataset in data/annotations/ and data/raw/. Follow instructions in scripts/train_yolov8.py.
+- **Docker Deployment**: The Docker setup is in progress and will be added in a future update.
 
 ## 🤝 Contributing
 Contributions are welcome! Please follow these steps:
-1.Fork the repository.
-2.Create a new branch (git checkout -b feature/your-feature).
-3.Commit changes (git commit -m "Add your feature").
-4.Push to the branch (git push origin feature/your-feature).
-5.Open a pull request.
+- 1.Fork the repository.
+- 2.Create a new branch (git checkout -b feature/your-feature).
+- 3.Commit changes (git commit -m "Add your feature").
+- 4.Push to the branch (git push origin feature/your-feature).
+- 5.Open a pull request.
 
 📬 Contact
 For questions or support, please open an issue on GitHub or contact suryavenkata.mds2024@cmi.ac.in
