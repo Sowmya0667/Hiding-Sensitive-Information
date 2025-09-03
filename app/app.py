@@ -30,7 +30,7 @@ class Config:
     TEMP_DIR = os.path.join(os.path.dirname(__file__), "pii_masking_temp")
     GOOGLE_DRIVE_FILE_ID = "1BUHPtTeZp1vDTfuXX86qPtceYxNxdbp4"
     DOWNLOAD_URL = f"https://drive.google.com/uc?export=download&id={GOOGLE_DRIVE_FILE_ID}"
-    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDRlNOBR3NdfrY9GjWCvybew4H8-cDFYeE")
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "GEMINI_API_KEY")
     GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     API_CALLS_PER_MINUTE = 4
     SECONDS_PER_MINUTE = 60
