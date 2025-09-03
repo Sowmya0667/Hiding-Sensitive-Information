@@ -30,7 +30,7 @@ class Config:
     TEMP_DIR = os.path.join(os.path.dirname(__file__), "pii_masking_temp")
     GOOGLE_DRIVE_FILE_ID = "1BUHPtTeZp1vDTfuXX86qPtceYxNxdbp4"
     DOWNLOAD_URL = f"https://drive.google.com/uc?export=download&id={GOOGLE_DRIVE_FILE_ID}"
-    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "YOUR_API_KEY")
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyDRlNOBR3NdfrY9GjWCvybew4H8-cDFYeE")
     GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     API_CALLS_PER_MINUTE = 4
     SECONDS_PER_MINUTE = 60
@@ -120,12 +120,6 @@ class HelperFunctions:
         except Exception as e:
             st.error(f"Failed to encode image {image_path}: {str(e)}")
             return None
-        
-
-    @staticmethod
-    def is_english_text(text: str) -> bool:
-        return bool(re.match(r'^[a-zA-Z0-9\s.,-/:&]*$', text))
-    
 
     @staticmethod
     def is_valid_name(text: str) -> bool:
@@ -854,19 +848,24 @@ class ImageProcessor:
             aligned_images.append((output_path, base_name))
         status_placeholder.info("Image alignment has completed.")
     
-        # Step 4: OCR with PaddleOCR on aligned images
+        # Step 3: OCR with PaddleOCR on aligned images
         status_placeholder.info("Text extraction has started...")
-        ocr_dir = os.path.join(Config.TEMP_DIR, "paddle_result", sanitized_base_name)
+        ocr_dir = os.path.join(Config.TEMP_DIR, "paddle_result", original_file_name)
         image_ocr_dir = os.path.join(ocr_dir, "images")
         json_ocr_dir = os.path.join(ocr_dir, "annotations")
         os.makedirs(image_ocr_dir, exist_ok=True)
         os.makedirs(json_ocr_dir, exist_ok=True)
+
         # Clear previous OCR results for this image
         for file in glob.glob(os.path.join(json_ocr_dir, "*.json")):
             os.remove(file)
         for file in glob.glob(os.path.join(image_ocr_dir, "*.jpg")):
             os.remove(file)
+
         json_data = []
+        boxes_all = []
+        texts_all = []
+
         for img_file, base_name in aligned_images:
             try:
                 print(f"Running OCR on {img_file}")
@@ -879,12 +878,58 @@ class ImageProcessor:
                     if not result or not result[0]:
                         status_placeholder.error(f"OCR failed for original image {base_name}. Skipping text extraction.")
                         continue
+                
                 inner_result = result[0]
-                boxes = [res[0] for res in inner_result]
-                texts = [res[1][0] for res in inner_result]
-                for box, text in zip(boxes, texts):
-                    coordinates = [{"x": int(pt[0]), "y": int(pt[1])} for pt in box]
-                    json_data.append({"text": text, "coordinates": coordinates})
+                for res in inner_result:
+                    box, (text, _) = res
+                    # Try to split based on keywords
+                    keyword, split_idx = HelperFunctions.find_keyword_split(text)
+                    if keyword and split_idx < len(text):
+                        # Split text after the keyword
+                        part1 = text[:split_idx].strip()
+                        part2 = text[split_idx:].strip()
+                        if len(part1) > 0 and len(part2) > 0:
+                            total_len = len(part1) + len(part2)
+                            ratio = len(part1) / total_len
+                            split_boxes = HelperFunctions.split_box(box, ratio)
+                            for part_text, part_box in zip([part1, part2], split_boxes):
+                                coordinates = [{"x": int(pt[0]), "y": int(pt[1])} for pt in part_box]
+                                json_data.append({"text": part_text, "coordinates": coordinates})
+                                boxes_all.append(part_box)
+                                texts_all.append(part_text)
+                        else:
+                            # Fallback if splitting results in empty parts
+                            coordinates = [{"x": int(pt[0]), "y": int(pt[1])} for pt in box]
+                            json_data.append({"text": text, "coordinates": coordinates})
+                            boxes_all.append(box)
+                            texts_all.append(text)
+                    elif ':' in text:
+                        # If no keyword, try splitting on ':'
+                        parts = text.split(':', 1)
+                        parts = [part.strip() for part in parts]
+                        if len(parts[0]) > 0 and len(parts[1]) > 0:
+                            total_len = len(parts[0]) + len(parts[1])
+                            ratio = len(parts[0]) / total_len
+                            split_boxes = HelperFunctions.split_box(box, ratio)
+                            for part_text, part_box in zip(parts, split_boxes):
+                                coordinates = [{"x": int(pt[0]), "y": int(pt[1])} for pt in part_box]
+                                json_data.append({"text": part_text, "coordinates": coordinates})
+                                boxes_all.append(part_box)
+                                texts_all.append(part_text)
+                        else:
+                            # Fallback if splitting on ':' fails
+                            coordinates = [{"x": int(pt[0]), "y": int(pt[1])} for pt in box]
+                            json_data.append({"text": text, "coordinates": coordinates})
+                            boxes_all.append(box)
+                            texts_all.append(text)
+                    else:
+                        # No keyword or ':', use the full text and box
+                        coordinates = [{"x": int(pt[0]), "y": int(pt[1])} for pt in box]
+                        json_data.append({"text": text, "coordinates": coordinates})
+                        boxes_all.append(box)
+                        texts_all.append(text)
+
+                # Draw annotated image
                 img = cv2.imread(img_file)
                 if img is None:
                     status_placeholder.error(f"Failed to load image {img_file} for annotation.")
@@ -895,20 +940,26 @@ class ImageProcessor:
                 if not os.path.exists(font_path):
                     print(f"Font file {font_path} not found, using default font")
                     font_path = None
-                annotated = draw_ocr(img, boxes, texts, None, font_path=font_path)
+                annotated = draw_ocr(img, boxes_all, texts_all, None, font_path=font_path)
                 annotated_img = Image.fromarray(annotated)
                 annotated_path = os.path.join(image_ocr_dir, f"{base_name}_annotated.jpg")
                 annotated_img.save(annotated_path)
                 print(f"Saved annotated image to {annotated_path}, exists={os.path.exists(annotated_path)}")
+
+                # Save JSON
                 json_output_path = os.path.join(json_ocr_dir, f"{base_name}.json")
                 with open(json_output_path, 'w', encoding='utf-8') as f:
                     json.dump(json_data, f, ensure_ascii=False, indent=4)
                 print(f"Saved JSON to {json_output_path}, exists={os.path.exists(json_output_path)}")
-                json_data = []
+                json_data = []  # Clear for next image
+                boxes_all = []
+                texts_all = []
+
             except Exception as e:
                 status_placeholder.error(f"Error processing {base_name} in OCR: {str(e)}")
                 print(f"OCR exception for {base_name}: {str(e)}")
                 continue
+
         status_placeholder.info("Text extraction has completed.")
        
         # Step 5: PII Detection
